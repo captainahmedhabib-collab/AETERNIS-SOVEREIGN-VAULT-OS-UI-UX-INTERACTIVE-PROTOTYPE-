@@ -1,310 +1,1000 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AETERNIS SOVEREIGN VAULT-OS</title>
-    <style>
-        /* CSS Reset & Core Styling */
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>AETERNIS — Sovereign Vault-OS (Reference Prototype)</title>
+<meta name="description" content="AETERNIS Sovereign Vault-OS — non-production reference interface. All data simulated.">
 
-        body, html {
-            background-color: #030712;
-            color: #f3f4f6;
-            height: 100%;
-            overflow-x: hidden;
-        }
+<style>
+/* ==========================================================================
+   AETERNIS SOVEREIGN VAULT-OS
+   Reference UI prototype — zero dependencies, single file.
+   ALL VALUES, KEYS, HASHES AND LEDGER ENTRIES ARE SIMULATED.
+   ========================================================================== */
 
-        /* Sovereign Watermark Overlay - visual only, physically inert */
-        .sovereign-watermark {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            pointer-events: none;
-            z-index: 9999;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            opacity: 0.03;
-            user-select: none;
-        }
-        .sovereign-watermark svg {
-            width: 60%;
-            height: auto;
-        }
+:root{
+  /* ---- Color tokens ---- */
+  --bg-void:        #05070c;
+  --bg-deep:        #0a0e17;
+  --bg-panel:       #0f1420;
+  --bg-panel-alt:   #131a29;
+  --bg-raised:      #182034;
+  --line-hair:      rgba(200,210,230,0.08);
+  --line-strong:    rgba(200,210,230,0.16);
 
-        /* Layout Utilities */
-        .container {
-            width: 100%;
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-        }
+  --ink-primary:    #eef1f7;
+  --ink-secondary:  #aab3c5;
+  --ink-tertiary:   #6b7488;
+  --ink-disabled:   #444d61;
 
-        /* Screens Management */
-        .screen {
-            display: none;
-        }
-        .screen.active {
-            display: block;
-        }
+  --gold-500:       #c9a24b;
+  --gold-400:       #ddc077;
+  --gold-700:       #8a6d2e;
+  --navy-500:       #2c4870;
+  --navy-400:       #3d5f8f;
 
-        /* Terminal & Components */
-        .terminal-card {
-            background-color: #0b1329;
-            border: 1px solid #1e293b;
-            border-radius: 8px;
-            padding: 24px;
-            margin-bottom: 24px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
-        }
+  --pos:            #3fbf83;
+  --neg:            #e0525c;
+  --info:           #5b8fd6;
 
-        .system-title {
-            color: #38bdf8;
-            font-size: 1.5rem;
-            font-weight: 700;
-            letter-spacing: 0.05em;
-            margin-bottom: 8px;
-            text-transform: uppercase;
-        }
+  --radius-sm: 3px;
+  --radius-md: 6px;
+  --radius-lg: 10px;
 
-        .system-subtitle {
-            color: #9ca3af;
-            font-size: 0.875rem;
-            margin-bottom: 24px;
-        }
+  --font-display: Georgia, "Times New Roman", "Noto Serif", serif;
+  --font-body: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "SF Mono", "Cascadia Code", Consolas, "Courier New", monospace;
 
-        /* Deterministic Buttons */
-        .btn-deterministic {
-            position: relative;
-            z-index: 100;
-            touch-action: manipulation;
-            background-color: #0284c7;
-            color: #ffffff;
-            border: none;
-            padding: 14px 28px;
-            font-size: 1rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            border-radius: 4px;
-            cursor: pointer;
-            width: 100%;
-            display: block;
-            text-align: center;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-        }
-        .btn-deterministic:active {
-            background-color: #0369a1;
-        }
+  --ease: cubic-bezier(0.16, 1, 0.3, 1);
+}
 
-        .btn-secondary {
-            background-color: #1e293b;
-            border: 1px solid #334155;
-            margin-top: 12px;
-        }
-        .btn-secondary:active {
-            background-color: #0f172a;
-        }
+*,*::before,*::after{ box-sizing:border-box; }
+html,body{ height:100%; }
+body{
+  margin:0;
+  background:
+    radial-gradient(ellipse 900px 500px at 15% -10%, rgba(44,72,112,0.35), transparent 60%),
+    radial-gradient(ellipse 700px 500px at 110% 10%, rgba(201,162,75,0.06), transparent 55%),
+    var(--bg-void);
+  color:var(--ink-primary);
+  font-family:var(--font-body);
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+}
+::selection{ background:var(--gold-500); color:#1a1a1a; }
+button{ font-family:inherit; }
+:focus-visible{ outline:2px solid var(--gold-400); outline-offset:2px; border-radius:2px; }
 
-        /* Log Outputs */
-        .log-display {
-            background-color: #020617;
-            border: 1px solid #1e293b;
-            border-radius: 4px;
-            padding: 16px;
-            font-family: monospace;
-            font-size: 0.85rem;
-            color: #4ade80;
-            height: 180px;
-            overflow-y: auto;
-            margin-top: 20px;
-            white-space: pre-wrap;
-        }
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{ animation-duration:0.001ms !important; animation-iteration-count:1 !important; transition-duration:0.001ms !important; scroll-behavior:auto !important; }
+}
 
-        /* Metrics Grid */
-        .metrics-grid {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 16px;
-            margin-top: 20px;
-        }
+/* ---- Background watermark (non-interactive, demo notice) ---- */
+.watermark{
+  position:fixed; inset:0; pointer-events:none; z-index:0;
+  display:flex; align-items:center; justify-content:center;
+  overflow:hidden;
+}
+.watermark span{
+  font-family:var(--font-display);
+  font-size:min(14vw, 200px);
+  font-weight:700;
+  letter-spacing:0.04em;
+  color:rgba(255,255,255,0.014);
+  white-space:nowrap;
+  transform:rotate(-14deg);
+}
 
-        .metric-item {
-            background-color: #111827;
-            border: 1px solid #374151;
-            padding: 16px;
-            border-radius: 6px;
-        }
-        .metric-label {
-            font-size: 0.75rem;
-            color: #9ca3af;
-            text-transform: uppercase;
-            margin-bottom: 4px;
-        }
-        .metric-value {
-            font-size: 1.25rem;
-            font-weight: 700;
-            font-family: monospace;
-            color: #f3f4f6;
-        }
+/* ==========================================================================
+   SPLASH / BOOT SEQUENCE
+   ========================================================================== */
+#splash{
+  position:fixed; inset:0; z-index:100;
+  background:var(--bg-void);
+  display:flex; align-items:center; justify-content:center;
+  transition:opacity 0.6s var(--ease), visibility 0.6s var(--ease);
+}
+#splash.hidden{ opacity:0; visibility:hidden; pointer-events:none; }
 
-        /* Reference Disclaimer */
-        .disclaimer-tag {
-            font-size: 0.7rem;
-            color: #ef4444;
-            font-weight: bold;
-            letter-spacing: 0.05em;
-            text-transform: uppercase;
-            margin-top: 10px;
-            display: block;
-        }
+.splash-card{
+  width:min(420px, 88vw);
+  text-align:center;
+}
+.seal{
+  width:76px; height:76px; margin:0 auto 28px;
+  position:relative;
+}
+.seal svg{ width:100%; height:100%; }
+.seal .ring{
+  position:absolute; inset:-10px;
+  border:1px solid var(--line-strong);
+  border-radius:50%;
+  animation:spin 18s linear infinite;
+}
+.seal .ring::before{
+  content:""; position:absolute; top:-1.5px; left:50%;
+  width:5px; height:5px; margin-left:-2.5px;
+  background:var(--gold-500); border-radius:50%;
+  box-shadow:0 0 8px 1px var(--gold-500);
+}
+@keyframes spin{ to{ transform:rotate(360deg); } }
 
-        /* 820px Breakpoint Customization */
-        @media (min-width: 820px) {
-            .metrics-grid {
-                grid-template-columns: repeat(3, 1fr);
-            }
-            .btn-deterministic {
-                width: auto;
-                display: inline-block;
-            }
-        }
-    </style>
+.splash-word{
+  font-family:var(--font-display);
+  font-size:30px; font-weight:700; letter-spacing:0.12em;
+  margin:0;
+}
+.splash-sub{
+  font-family:var(--font-mono);
+  font-size:11px; letter-spacing:0.22em; text-transform:uppercase;
+  color:var(--gold-500); margin:6px 0 34px;
+}
+.boot-track{
+  height:2px; width:100%; background:var(--line-hair); border-radius:2px; overflow:hidden;
+  margin-bottom:14px;
+}
+.boot-fill{
+  height:100%; width:0%;
+  background:linear-gradient(90deg, var(--navy-400), var(--gold-500));
+  transition:width 0.35s var(--ease);
+}
+.boot-msg{
+  font-family:var(--font-mono); font-size:12px; color:var(--ink-tertiary);
+  min-height:16px; letter-spacing:0.02em;
+}
+.btn-init{
+  margin-top:30px;
+  background:transparent;
+  border:1px solid var(--gold-700);
+  color:var(--gold-400);
+  padding:12px 28px;
+  font-family:var(--font-mono);
+  font-size:12px; letter-spacing:0.14em; text-transform:uppercase;
+  border-radius:var(--radius-sm);
+  cursor:pointer;
+  transition:all 0.25s var(--ease);
+}
+.btn-init:hover{ background:rgba(201,162,75,0.08); border-color:var(--gold-500); }
+.btn-init:disabled{ opacity:0.4; cursor:default; }
+
+/* ==========================================================================
+   APP SHELL
+   ========================================================================== */
+#app{
+  position:relative; z-index:1;
+  min-height:100vh;
+  display:grid;
+  grid-template-columns:220px 1fr;
+  grid-template-rows:56px 1fr;
+  grid-template-areas:
+    "topbar topbar"
+    "sidebar main";
+  opacity:0; transition:opacity 0.7s var(--ease);
+}
+#app.ready{ opacity:1; }
+
+/* ---- Classification bar ---- */
+.classification-bar{
+  grid-area:topbar;
+  display:none;
+}
+
+/* ---- Top bar ---- */
+.topbar{
+  grid-area:topbar;
+  display:flex; align-items:center; justify-content:space-between;
+  padding:0 20px;
+  border-bottom:1px solid var(--line-hair);
+  background:rgba(10,14,23,0.75);
+  backdrop-filter:blur(10px);
+  position:sticky; top:0; z-index:20;
+}
+.topbar-left{ display:flex; align-items:center; gap:12px; }
+.brand-mark{
+  width:26px; height:26px; flex:none;
+}
+.brand-text{ line-height:1.1; }
+.brand-name{
+  font-family:var(--font-display); font-weight:700; font-size:15px;
+  letter-spacing:0.06em;
+}
+.brand-sub{
+  font-family:var(--font-mono); font-size:9px; letter-spacing:0.16em;
+  color:var(--gold-500); text-transform:uppercase;
+}
+.classification-chip{
+  font-family:var(--font-mono); font-size:9.5px; letter-spacing:0.14em;
+  color:var(--ink-tertiary); border:1px solid var(--line-hair);
+  padding:3px 8px; border-radius:2px; text-transform:uppercase;
+  display:none;
+}
+@media (min-width:640px){ .classification-chip{ display:inline-block; } }
+
+.topbar-right{ display:flex; align-items:center; gap:14px; }
+.status-pill{
+  display:flex; align-items:center; gap:7px;
+  font-family:var(--font-mono); font-size:11px; color:var(--ink-secondary);
+}
+.status-dot{
+  width:7px; height:7px; border-radius:50%; background:var(--pos);
+  box-shadow:0 0 0 0 rgba(63,191,131,0.6);
+  animation:pulse 2.2s infinite;
+}
+@keyframes pulse{
+  0%{ box-shadow:0 0 0 0 rgba(63,191,131,0.5); }
+  70%{ box-shadow:0 0 0 7px rgba(63,191,131,0); }
+  100%{ box-shadow:0 0 0 0 rgba(63,191,131,0); }
+}
+.btn-reveal{
+  display:flex; align-items:center; gap:7px;
+  background:var(--bg-panel-alt); border:1px solid var(--line-hair);
+  color:var(--ink-secondary); padding:7px 12px; border-radius:var(--radius-sm);
+  font-size:12px; cursor:pointer; transition:all 0.2s var(--ease);
+}
+.btn-reveal:hover{ border-color:var(--gold-700); color:var(--gold-400); }
+.btn-reveal svg{ width:14px; height:14px; }
+
+/* ---- Sidebar (desktop) ---- */
+.sidebar{
+  grid-area:sidebar;
+  border-right:1px solid var(--line-hair);
+  padding:18px 12px;
+  display:flex; flex-direction:column; gap:2px;
+}
+.nav-item{
+  display:flex; align-items:center; gap:11px;
+  padding:10px 12px; border-radius:var(--radius-sm);
+  color:var(--ink-secondary); background:transparent; border:none;
+  font-size:13.5px; text-align:left; cursor:pointer; width:100%;
+  transition:background 0.2s var(--ease), color 0.2s var(--ease);
+  position:relative;
+}
+.nav-item svg{ width:16px; height:16px; flex:none; opacity:0.85; }
+.nav-item:hover{ background:var(--bg-panel-alt); color:var(--ink-primary); }
+.nav-item.active{ background:var(--bg-panel-alt); color:var(--gold-400); }
+.nav-item.active::before{
+  content:""; position:absolute; left:-12px; top:8px; bottom:8px; width:2px;
+  background:var(--gold-500); border-radius:2px;
+}
+.sidebar-foot{
+  margin-top:auto; padding:12px; font-family:var(--font-mono);
+  font-size:10px; color:var(--ink-disabled); letter-spacing:0.04em; line-height:1.6;
+}
+
+/* ---- Main ---- */
+main{
+  grid-area:main;
+  padding:26px 28px 90px;
+  overflow-x:hidden;
+}
+.view{ display:none; animation:fadeUp 0.4s var(--ease); }
+.view.active{ display:block; }
+@keyframes fadeUp{ from{ opacity:0; transform:translateY(6px); } to{ opacity:1; transform:none; } }
+
+.view-header{
+  display:flex; align-items:baseline; justify-content:space-between;
+  flex-wrap:wrap; gap:10px; margin-bottom:22px;
+}
+.view-title{
+  font-family:var(--font-display); font-size:22px; font-weight:700; margin:0;
+}
+.view-caption{
+  font-family:var(--font-mono); font-size:11px; color:var(--ink-tertiary);
+  letter-spacing:0.02em; margin-top:4px;
+}
+.sim-tag{
+  font-family:var(--font-mono); font-size:9px; letter-spacing:0.14em;
+  color:var(--gold-500); border:1px solid var(--gold-700);
+  padding:2px 7px; border-radius:2px; text-transform:uppercase;
+  background:rgba(201,162,75,0.06);
+}
+
+/* ---- Cards / grid ---- */
+.grid-assets{
+  display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));
+  gap:14px; margin-bottom:22px;
+}
+.card{
+  background:linear-gradient(155deg, var(--bg-panel) 0%, var(--bg-panel-alt) 100%);
+  border:1px solid var(--line-hair); border-radius:var(--radius-lg);
+  padding:18px;
+}
+.asset-card{ position:relative; }
+.asset-top{ display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; }
+.asset-symbol{
+  font-family:var(--font-mono); font-size:11px; letter-spacing:0.1em;
+  color:var(--ink-tertiary);
+}
+.asset-name{ font-size:13.5px; color:var(--ink-secondary); margin-top:2px; }
+.asset-swatch{
+  width:9px; height:9px; border-radius:2px;
+}
+.asset-value{
+  font-family:var(--font-display); font-size:24px; font-weight:700;
+  letter-spacing:0.01em; margin:2px 0 8px;
+  font-variant-numeric:tabular-nums;
+}
+.asset-value.masked{ letter-spacing:0.16em; color:var(--ink-tertiary); }
+.asset-change{
+  font-family:var(--font-mono); font-size:12px; display:flex; align-items:center; gap:5px;
+}
+.asset-change.pos{ color:var(--pos); }
+.asset-change.neg{ color:var(--neg); }
+.asset-footnote{
+  margin-top:12px; font-size:9.5px; letter-spacing:0.1em; color:var(--ink-disabled);
+  text-transform:uppercase; font-family:var(--font-mono);
+}
+
+.panels-row{
+  display:grid; grid-template-columns:1.1fr 1.4fr; gap:16px; align-items:start;
+}
+@media (max-width:900px){ .panels-row{ grid-template-columns:1fr; } }
+
+.panel-title{
+  font-family:var(--font-display); font-size:15px; font-weight:700; margin:0 0 2px;
+}
+.panel-sub{
+  font-family:var(--font-mono); font-size:10.5px; color:var(--ink-tertiary);
+  margin-bottom:16px; letter-spacing:0.02em;
+}
+
+/* ---- Chart ---- */
+.chart-wrap{ display:flex; gap:20px; align-items:center; flex-wrap:wrap; }
+canvas#assetChart{ width:150px; height:150px; flex:none; }
+.legend{ display:flex; flex-direction:column; gap:9px; flex:1; min-width:140px; }
+.legend-row{ display:flex; align-items:center; justify-content:space-between; font-size:12.5px; }
+.legend-key{ display:flex; align-items:center; gap:8px; color:var(--ink-secondary); }
+.legend-dot{ width:8px; height:8px; border-radius:2px; flex:none; }
+.legend-pct{ font-family:var(--font-mono); color:var(--ink-primary); }
+
+/* ---- Ledger ---- */
+.ledger-list{ display:flex; flex-direction:column; }
+.ledger-row{
+  display:grid; grid-template-columns:auto 1fr auto; gap:12px; align-items:start;
+  padding:11px 0; border-bottom:1px solid var(--line-hair);
+  font-size:12.5px;
+}
+.ledger-row:last-child{ border-bottom:none; }
+.ledger-dot{ width:6px; height:6px; border-radius:50%; background:var(--info); margin-top:5px; }
+.ledger-dot.gold{ background:var(--gold-500); }
+.ledger-event{ color:var(--ink-primary); }
+.ledger-hash{
+  font-family:var(--font-mono); font-size:10.5px; color:var(--ink-tertiary);
+  display:block; margin-top:2px; word-break:break-all;
+}
+.ledger-time{
+  font-family:var(--font-mono); font-size:10.5px; color:var(--ink-disabled);
+  white-space:nowrap;
+}
+
+.btn-gold{
+  background:linear-gradient(155deg, var(--gold-400), var(--gold-700));
+  color:#1a1408; border:none; padding:11px 18px; border-radius:var(--radius-sm);
+  font-size:12.5px; font-weight:600; letter-spacing:0.03em; cursor:pointer;
+  transition:filter 0.2s var(--ease), transform 0.2s var(--ease);
+  display:inline-flex; align-items:center; gap:8px;
+}
+.btn-gold:hover{ filter:brightness(1.08); }
+.btn-gold:active{ transform:scale(0.98); }
+.btn-gold:disabled{ opacity:0.55; cursor:default; filter:none; }
+.btn-gold svg{ width:14px; height:14px; }
+
+.merkle-box{
+  margin-top:16px; padding:13px 14px; background:var(--bg-raised);
+  border:1px solid var(--line-hair); border-radius:var(--radius-md);
+}
+.merkle-label{
+  font-family:var(--font-mono); font-size:9.5px; letter-spacing:0.14em;
+  color:var(--ink-tertiary); text-transform:uppercase; margin-bottom:6px;
+}
+.merkle-value{
+  font-family:var(--font-mono); font-size:12px; color:var(--gold-400);
+  word-break:break-all;
+}
+
+/* ---- Vault view ---- */
+.vault-table{ width:100%; border-collapse:collapse; }
+.vault-table th{
+  text-align:left; font-family:var(--font-mono); font-size:10px; letter-spacing:0.1em;
+  color:var(--ink-tertiary); text-transform:uppercase; font-weight:500;
+  padding:0 12px 10px; border-bottom:1px solid var(--line-strong);
+}
+.vault-table td{
+  padding:13px 12px; border-bottom:1px solid var(--line-hair); font-size:13px;
+  color:var(--ink-secondary); vertical-align:middle;
+}
+.vault-table tr:last-child td{ border-bottom:none; }
+.vault-id{ font-family:var(--font-mono); color:var(--ink-primary); font-size:12px; }
+.badge{
+  font-family:var(--font-mono); font-size:9.5px; padding:3px 8px; border-radius:2px;
+  letter-spacing:0.06em; text-transform:uppercase;
+}
+.badge.sealed{ background:rgba(63,191,131,0.1); color:var(--pos); border:1px solid rgba(63,191,131,0.3); }
+.badge.rotating{ background:rgba(201,162,75,0.1); color:var(--gold-400); border:1px solid rgba(201,162,75,0.3); }
+
+/* ---- Settings view ---- */
+.settings-grid{ display:grid; grid-template-columns:repeat(auto-fit, minmax(240px,1fr)); gap:14px; }
+.setting-row{ display:flex; align-items:center; justify-content:space-between; padding:13px 0; border-bottom:1px solid var(--line-hair); }
+.setting-row:last-child{ border-bottom:none; }
+.setting-label{ font-size:13px; color:var(--ink-secondary); }
+.setting-desc{ font-size:11px; color:var(--ink-disabled); margin-top:2px; }
+.toggle{
+  width:38px; height:21px; border-radius:20px; background:var(--bg-raised);
+  border:1px solid var(--line-strong); position:relative; cursor:pointer; flex:none;
+  transition:background 0.2s var(--ease);
+}
+.toggle::after{
+  content:""; position:absolute; width:15px; height:15px; border-radius:50%;
+  background:var(--ink-tertiary); top:2px; left:2px; transition:all 0.2s var(--ease);
+}
+.toggle.on{ background:rgba(201,162,75,0.25); border-color:var(--gold-700); }
+.toggle.on::after{ transform:translateX(17px); background:var(--gold-400); }
+.select-chip{
+  font-family:var(--font-mono); font-size:11px; color:var(--ink-secondary);
+  background:var(--bg-raised); border:1px solid var(--line-hair); border-radius:var(--radius-sm);
+  padding:6px 10px;
+}
+
+/* ---- Bottom tabs (mobile) ---- */
+.bottom-tabs{
+  display:none;
+  position:fixed; bottom:0; left:0; right:0; z-index:20;
+  background:rgba(10,14,23,0.9); backdrop-filter:blur(12px);
+  border-top:1px solid var(--line-hair);
+  padding:6px 6px calc(6px + env(safe-area-inset-bottom));
+  grid-template-columns:repeat(4,1fr);
+}
+.tab-item{
+  display:flex; flex-direction:column; align-items:center; gap:3px;
+  background:none; border:none; color:var(--ink-tertiary); padding:8px 2px;
+  font-size:10px; cursor:pointer;
+}
+.tab-item svg{ width:18px; height:18px; }
+.tab-item.active{ color:var(--gold-400); }
+
+@media (max-width:820px){
+  #app{ grid-template-columns:1fr; grid-template-areas:"topbar" "main"; }
+  .sidebar{ display:none; }
+  .bottom-tabs{ display:grid; }
+  main{ padding:18px 16px 96px; }
+}
+@media (max-width:480px){
+  .brand-sub{ display:none; }
+  .view-title{ font-size:19px; }
+  .panels-row{ gap:12px; }
+  main{ padding:14px 12px 92px; }
+}
+
+.footnote-strip{
+  margin-top:26px; padding-top:16px; border-top:1px solid var(--line-hair);
+  font-family:var(--font-mono); font-size:10px; color:var(--ink-disabled);
+  letter-spacing:0.03em; line-height:1.7;
+}
+
+.sr-only{
+  position:absolute; width:1px; height:1px; padding:0; margin:-1px;
+  overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0;
+}
+</style>
 </head>
 <body>
 
-    <!-- Physically Inert Watermark Layer -->
-    <div class="sovereign-watermark">
-        <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="50" cy="50" r="45" fill="none" stroke="currentColor" stroke-width="2"/>
-            <path d="M50 15 L50 85 M15 50 L85 50" stroke="currentColor" stroke-width="1.5"/>
-            <text x="50" y="53" font-size="6" text-anchor="middle" font-weight="bold" fill="currentColor">EL-KOPTAN</text>
-        </svg>
+<div class="watermark" aria-hidden="true"><span>SIMULATED — REFERENCE ONLY</span></div>
+
+<!-- ==========================================================================
+     SPLASH / BOOT SEQUENCE
+     ========================================================================== -->
+<div id="splash" role="dialog" aria-label="System initialization">
+  <div class="splash-card">
+    <div class="seal">
+      <div class="ring" aria-hidden="true"></div>
+      <svg viewBox="0 0 100 100" aria-hidden="true">
+        <path d="M50 4 L92 20 L92 48 C92 74 74 92 50 98 C26 92 8 74 8 48 L8 20 Z"
+              fill="none" stroke="#c9a24b" stroke-width="2.5"/>
+        <line x1="50" y1="4" x2="50" y2="98" stroke="#3d5f8f" stroke-width="1.5" opacity="0.6"/>
+      </svg>
     </div>
+    <p class="splash-word">AETERNIS</p>
+    <p class="splash-sub">Sovereign Vault-OS</p>
+    <div class="boot-track"><div class="boot-fill" id="bootFill"></div></div>
+    <p class="boot-msg" id="bootMsg" aria-live="polite">Awaiting session initialization…</p>
+    <button class="btn-init" id="btnInit" type="button">Initialize Session</button>
+  </div>
+</div>
 
-    <div class="container">
-        
-        <!-- SCREEN 1: AUTHENTICATION / BOOT LAYER -->
-        <div id="screen-auth" class="screen active">
-            <div class="terminal-card">
-                <div class="system-title">Aeternis Sovereign Vault-OS</div>
-                <div class="system-subtitle">Sovereign Infrastructure Core • Node Verification Enclave</div>
-                
-                <p style="margin-bottom: 24px; font-size: 0.95rem; color: #d1d5db; line-height: 1.5;">
-                    This interface establishes a secure, zero-trust connection to the isolated vault layer. Cryptographic execution paths are verified locally.
-                </p>
+<!-- ==========================================================================
+     APP SHELL
+     ========================================================================== -->
+<div id="app" role="application" aria-label="AETERNIS Sovereign Vault-OS reference interface">
 
-                <button id="btn-initialize" class="btn-deterministic">Initialize Secure Session</button>
-                <span class="disclaimer-tag">SYSTEM COMPLIANT — REFERENCE ONLY</span>
-            </div>
+  <header class="topbar">
+    <div class="topbar-left">
+      <svg class="brand-mark" viewBox="0 0 100 100" aria-hidden="true">
+        <path d="M50 4 L92 20 L92 48 C92 74 74 92 50 98 C26 92 8 74 8 48 L8 20 Z" fill="#2c4870"/>
+        <path d="M50 4 L92 20 L92 48 C92 74 74 92 50 98 Z" fill="#182034"/>
+        <path d="M50 4 L92 20 L92 48 C92 74 74 92 50 98 Z" fill="none" stroke="#c9a24b" stroke-width="2"/>
+      </svg>
+      <div class="brand-text">
+        <div class="brand-name">AETERNIS</div>
+        <div class="brand-sub">Sovereign Vault-OS</div>
+      </div>
+      <span class="classification-chip">Strictly Confidential · Demo Build</span>
+    </div>
+    <div class="topbar-right">
+      <div class="status-pill"><span class="status-dot" aria-hidden="true"></span><span id="statusLabel">System Online</span></div>
+      <button class="btn-reveal" id="btnReveal" type="button" aria-pressed="false">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+        <span id="revealLabel">Reveal Values</span>
+      </button>
+    </div>
+  </header>
+
+  <nav class="sidebar" aria-label="Primary navigation">
+    <button class="nav-item active" data-view="dashboard" type="button">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>
+      Dashboard
+    </button>
+    <button class="nav-item" data-view="vault" type="button">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="12" cy="12" r="3.2"/><path d="M12 8.8v.6M12 14.6v.6M8.8 12h.6M14.6 12h.6"/></svg>
+      Vault
+    </button>
+    <button class="nav-item" data-view="audit" type="button">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 3h9l5 5v13a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z"/><path d="M9 12h6M9 16h6M9 8h2"/></svg>
+      Audit
+    </button>
+    <button class="nav-item" data-view="settings" type="button">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1 1.55V21a2 2 0 1 1-4 0v-.09a1.7 1.7 0 0 0-1.11-1.55 1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.7 1.7 0 0 0 .34-1.87 1.7 1.7 0 0 0-1.55-1H3a2 2 0 1 1 0-4h.09A1.7 1.7 0 0 0 4.64 8.6a1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.7 1.7 0 0 0 1.87.34H9a1.7 1.7 0 0 0 1-1.55V3a2 2 0 1 1 4 0v.09a1.7 1.7 0 0 0 1 1.55 1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.87V9a1.7 1.7 0 0 0 1.55 1H21a2 2 0 1 1 0 4h-.09a1.7 1.7 0 0 0-1.55 1Z"/></svg>
+      Settings
+    </button>
+    <div class="sidebar-foot">
+      ENV: DEMO-SANDBOX<br>
+      BUILD: REF-1.0.0<br>
+      DATA SOURCE: SIMULATED
+    </div>
+  </nav>
+
+  <main id="mainContent">
+
+    <!-- ============ DASHBOARD ============ -->
+    <section class="view active" id="view-dashboard" aria-labelledby="dashTitle">
+      <div class="view-header">
+        <div>
+          <h1 class="view-title" id="dashTitle">Liquidity Dashboard</h1>
+          <div class="view-caption">Consolidated position across custodied asset classes</div>
+        </div>
+        <span class="sim-tag">Simulated Data</span>
+      </div>
+
+      <div class="grid-assets" id="assetGrid"></div>
+
+      <div class="panels-row">
+        <div class="card">
+          <h2 class="panel-title">Asset Distribution</h2>
+          <p class="panel-sub">Share of total custodied value</p>
+          <div class="chart-wrap">
+            <canvas id="assetChart" width="150" height="150" role="img" aria-label="Pie chart of asset distribution"></canvas>
+            <div class="legend" id="chartLegend"></div>
+          </div>
         </div>
 
-        <!-- SCREEN 2: CORE OPERATIONS LAYER -->
-        <div id="screen-dashboard" class="screen">
-            <div class="terminal-card">
-                <div class="system-title">Vault Control Center</div>
-                <div class="system-subtitle">Operational Node Cluster Active</div>
-
-                <!-- Metrics & Liquidity Reveal -->
-                <div class="metrics-grid">
-                    <div class="metric-item">
-                        <div class="metric-label">Liquidity Status</div>
-                        <div class="metric-value" style="color: #4ade80;">SECURED</div>
-                    </div>
-                    <div class="metric-item">
-                        <div class="metric-label">Enclave Environment</div>
-                        <div class="metric-value">AIR-GAPPED</div>
-                    </div>
-                    <div class="metric-item">
-                        <div class="metric-label">Settlement Ledger</div>
-                        <div class="metric-value" style="color: #eab308;">SIMULATED — TEST LEDGER</div>
-                    </div>
-                </div>
-
-                <!-- Ledger / Root Output Box -->
-                <div id="log-terminal" class="log-display">System ready. Awaiting cryptographic sequence initiation...</div>
-
-                <!-- Interactive Controls -->
-                <div style="margin-top: 24px;">
-                    <button id="btn-rotate" class="btn-deterministic">Initiate Secure Rotation Protocol</button>
-                    <button id="btn-reset" class="btn-deterministic btn-secondary">Terminate Session</button>
-                </div>
-
-                <span class="disclaimer-tag" style="margin-top: 20px;">SIMULATED VALUE — ARCHITECTURAL DEMO</span>
-            </div>
+        <div class="card">
+          <h2 class="panel-title">Audit Ledger — Recent</h2>
+          <p class="panel-sub">Last 5 recorded events, newest first</p>
+          <div class="ledger-list" id="ledgerRecent"></div>
+          <button class="btn-gold" id="btnRotate" type="button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg>
+            Rotate HSM Keys
+          </button>
+          <div class="merkle-box">
+            <div class="merkle-label">Current Merkle Root (Simulated)</div>
+            <div class="merkle-value" id="merkleRoot">—</div>
+          </div>
         </div>
+      </div>
+    </section>
 
-    </div>
+    <!-- ============ VAULT ============ -->
+    <section class="view" id="view-vault" aria-labelledby="vaultTitle">
+      <div class="view-header">
+        <div>
+          <h1 class="view-title" id="vaultTitle">Vault Contents</h1>
+          <div class="view-caption">Encrypted enclave inventory — reference representation</div>
+        </div>
+        <span class="sim-tag">Demo Enclave</span>
+      </div>
+      <div class="card">
+        <table class="vault-table">
+          <thead>
+            <tr><th>Compartment</th><th>Custody Class</th><th>Key Ceremony</th><th>Status</th></tr>
+          </thead>
+          <tbody id="vaultBody"></tbody>
+        </table>
+      </div>
+      <p class="footnote-strip">All compartment identifiers, ceremony references and statuses shown above are generated for demonstration purposes and do not correspond to any real custody instrument, key material, or institution.</p>
+    </section>
 
-    <script>
-        // DOM Elements
-        const screenAuth = document.getElementById('screen-auth');
-        const screenDashboard = document.getElementById('screen-dashboard');
-        const btnInitialize = document.getElementById('btn-initialize');
-        const btnRotate = document.getElementById('btn-rotate');
-        const btnReset = document.getElementById('btn-reset');
-        const logTerminal = document.getElementById('log-terminal');
+    <!-- ============ AUDIT ============ -->
+    <section class="view" id="view-audit" aria-labelledby="auditTitle">
+      <div class="view-header">
+        <div>
+          <h1 class="view-title" id="auditTitle">Audit Trail</h1>
+          <div class="view-caption">Full chronological ledger of session events</div>
+        </div>
+        <span class="sim-tag">Simulated Ledger</span>
+      </div>
+      <div class="card">
+        <div class="ledger-list" id="ledgerFull"></div>
+      </div>
+    </section>
 
-        // Deterministic UI Toggle Engine (Zero Transition Latency)
-        function switchScreen(fromScreen, toScreen) {
-            fromScreen.style.display = 'none';
-            toScreen.style.display = 'block';
-        }
+    <!-- ============ SETTINGS ============ -->
+    <section class="view" id="view-settings" aria-labelledby="settingsTitle">
+      <div class="view-header">
+        <div>
+          <h1 class="view-title" id="settingsTitle">Settings</h1>
+          <div class="view-caption">Environment and simulation parameters</div>
+        </div>
+        <span class="sim-tag">Illustrative Only</span>
+      </div>
+      <div class="card settings-grid">
+        <div>
+          <div class="setting-row">
+            <div><div class="setting-label">Environment</div><div class="setting-desc">Active runtime context</div></div>
+            <span class="select-chip">DEMO-SANDBOX</span>
+          </div>
+          <div class="setting-row">
+            <div><div class="setting-label">HSM Mode</div><div class="setting-desc">Key custody simulation mode</div></div>
+            <span class="select-chip">SIMULATED / FIPS 140-3 REF.</span>
+          </div>
+          <div class="setting-row">
+            <div><div class="setting-label">Data Source</div><div class="setting-desc">Origin of displayed figures</div></div>
+            <span class="select-chip">SYNTHETIC GENERATOR</span>
+          </div>
+        </div>
+        <div>
+          <div class="setting-row">
+            <div><div class="setting-label">Reduced Motion</div><div class="setting-desc">Honor system accessibility preference</div></div>
+            <button class="toggle on" type="button" role="switch" aria-checked="true" disabled></button>
+          </div>
+          <div class="setting-row">
+            <div><div class="setting-label">Auto-rotate keys</div><div class="setting-desc">Not active in this reference build</div></div>
+            <button class="toggle" type="button" role="switch" aria-checked="false" disabled></button>
+          </div>
+          <div class="setting-row">
+            <div><div class="setting-label">Verbose ledger</div><div class="setting-desc">Show extended event metadata</div></div>
+            <button class="toggle on" type="button" role="switch" aria-checked="true" disabled></button>
+          </div>
+        </div>
+      </div>
+      <p class="footnote-strip">This panel is illustrative. No settings shown here alter real infrastructure, keys, or institutional systems — this build has no backend and stores no data beyond the current browser session.</p>
+    </section>
 
-        // Simulating Pure Cryptographic Hash Path (Merkle Root Generation)
-        function generateMockMerkleRoot() {
-            const hexChars = '0123456789abcdef';
-            let result = '';
-            for (let i = 0; i < 16; i++) {
-                result += hexChars[Math.floor(Math.random() * 16)];
-            }
-            return result + '…' + result.split('').reverse().join('');
-        }
+  </main>
 
-        // Actions & Event Listeners (Fully Tap-Optimized)
-        btnInitialize.addEventListener('click', function(e) {
-            e.preventDefault();
-            // Immediate Deterministic UI Shift
-            switchScreen(screenAuth, screenDashboard);
-            
-            // Populate Boot Logging
-            logTerminal.textContent = 
-                `[SYSTEM] Booting Sovereign Vault Infrastructure v2.0.26...\n` +
-                `[SYSTEM] Identity verified under moniker: EL-KOPTAN\n` +
-                `[SECURITY] HSM Enclave Communication Link established.\n` +
-                `[AUDIT] Audit Ledger push channel opened successfully.`;
-        });
+  <nav class="bottom-tabs" aria-label="Primary navigation">
+    <button class="tab-item active" data-view="dashboard" type="button">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>
+      Dashboard
+    </button>
+    <button class="tab-item" data-view="vault" type="button">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="12" cy="12" r="3.2"/></svg>
+      Vault
+    </button>
+    <button class="tab-item" data-view="audit" type="button">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 3h9l5 5v13a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z"/><path d="M9 12h6M9 16h6M9 8h2"/></svg>
+      Audit
+    </button>
+    <button class="tab-item" data-view="settings" type="button">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/></svg>
+      Settings
+    </button>
+  </nav>
+</div>
 
-        btnRotate.addEventListener('click', function(e) {
-            e.preventDefault();
-            const freshRoot = generateMockMerkleRoot();
-            
-            // Append Output Instantly without heavy DOM cycles
-            const currentLogs = logTerminal.textContent;
-            logTerminal.textContent = 
-                `[ROTATION] Action triggered at ${new Date().toISOString()}\n` +
-                `[HSM] Executing key rotation inside isolated domain...\n` +
-                `[MERKLE] Fresh Mock Root Generated: ${freshRoot} (SIMULATED)\n` +
-                `[AUDIT] Audit Ledger Entry Broadcasted.\n` +
-                `----------------------------------------\n` +
-                currentLogs;
-                
-            logTerminal.scrollTop = 0;
-        });
+<script>
+/* ==========================================================================
+   AETERNIS SOVEREIGN VAULT-OS — application logic
+   Single ES6 class holds all state and behavior. No inline HTML handlers.
+   IMPORTANT: this is a static front-end reference only. There is no backend,
+   no real cryptography, and no real custody of assets. Every value, hash and
+   ledger entry is generated client-side purely for demonstration.
+   ========================================================================== */
 
-        btnReset.addEventListener('click', function(e) {
-            e.preventDefault();
-            logTerminal.textContent = "System ready. Awaiting cryptographic sequence initiation...";
-            switchScreen(screenDashboard, screenAuth);
-        });
-    </script>
+class VaultApp {
+  constructor(){
+    // ---- Core state ----
+    this.masked = true;                 // values hidden by default
+    this.currentView = 'dashboard';
+    this.ledger = [];                   // audit trail entries
+    this.merkleRoot = '';
+    this.resizeTimer = null;
+
+    // ---- Reference asset set (values are illustrative, not live prices) ----
+    this.assets = [
+      { symbol:'BTC', name:'Bitcoin Reserve',  color:'#c9a24b', value:284650000, change:1.24 },
+      { symbol:'ETH', name:'Ethereum Reserve', color:'#5b8fd6', value:96210000,  change:-0.62 },
+      { symbol:'USD', name:'Cash & Equivalents', color:'#3fbf83', value:412300000, change:0.04 },
+      { symbol:'XAU', name:'Allocated Gold',   color:'#e8d9a8', value:157480000, change:0.31 },
+    ];
+
+    // ---- Reference vault compartments ----
+    this.compartments = [
+      { id:'VC-0001', class:'Cold Custody — Tier I', ceremony:'M-of-N Threshold (Simulated)', status:'sealed' },
+      { id:'VC-0002', class:'Cold Custody — Tier II', ceremony:'M-of-N Threshold (Simulated)', status:'sealed' },
+      { id:'VC-0003', class:'Warm Settlement Buffer', ceremony:'Dual Control (Simulated)', status:'sealed' },
+      { id:'VC-0004', class:'PQC Reserve Enclave', ceremony:'Lattice-Based Wrap (Simulated)', status:'rotating' },
+    ];
+
+    this.$ = (sel, ctx=document) => ctx.querySelector(sel);
+    this.$all = (sel, ctx=document) => Array.from(ctx.querySelectorAll(sel));
+
+    this.cacheDom();
+    this.bindEvents();
+    this.renderAssets();
+    this.renderVault();
+    this.seedLedger();
+    this.drawChart();
+  }
+
+  /* ---- DOM cache ---- */
+  cacheDom(){
+    this.dom = {
+      splash: this.$('#splash'),
+      bootFill: this.$('#bootFill'),
+      bootMsg: this.$('#bootMsg'),
+      btnInit: this.$('#btnInit'),
+      app: this.$('#app'),
+      btnReveal: this.$('#btnReveal'),
+      revealLabel: this.$('#revealLabel'),
+      assetGrid: this.$('#assetGrid'),
+      chart: this.$('#assetChart'),
+      legend: this.$('#chartLegend'),
+      ledgerRecent: this.$('#ledgerRecent'),
+      ledgerFull: this.$('#ledgerFull'),
+      btnRotate: this.$('#btnRotate'),
+      merkleRoot: this.$('#merkleRoot'),
+      vaultBody: this.$('#vaultBody'),
+    };
+  }
+
+  /* ---- Event bindings (no inline onclick attributes) ---- */
+  bindEvents(){
+    this.dom.btnInit.addEventListener('click', () => this.bootSequence());
+    this.dom.btnReveal.addEventListener('click', () => this.toggleMask());
+    this.dom.btnRotate.addEventListener('click', () => this.rotateHSM());
+
+    this.$all('.nav-item, .tab-item').forEach(btn=>{
+      btn.addEventListener('click', () => this.switchView(btn.dataset.view));
+    });
+
+    window.addEventListener('resize', () => this.debounce(() => this.drawChart(), 150));
+  }
+
+  /* ---- Simple debounce for resize-triggered redraws ---- */
+  debounce(fn, wait){
+    clearTimeout(this.resizeTimer);
+    this.resizeTimer = setTimeout(fn, wait);
+  }
+
+  /* =========================================================
+     BOOT SEQUENCE
+     ========================================================= */
+  bootSequence(){
+    this.dom.btnInit.disabled = true;
+    const steps = [
+      { pct:18,  msg:'Establishing encrypted enclave channel (simulated)…' },
+      { pct:38,  msg:'Verifying HSM attestation chain (simulated)…' },
+      { pct:58,  msg:'Loading synthetic ledger dataset…' },
+      { pct:78,  msg:'Reconciling asset registry (demo)…' },
+      { pct:94,  msg:'Rendering sovereign dashboard…' },
+      { pct:100, msg:'Session ready.' },
+    ];
+    let i = 0;
+    const tick = () => {
+      if(i >= steps.length){
+        setTimeout(()=>{
+          this.dom.splash.classList.add('hidden');
+          this.dom.app.classList.add('ready');
+        }, 350);
+        return;
+      }
+      const s = steps[i];
+      this.dom.bootFill.style.width = s.pct + '%';
+      this.dom.bootMsg.textContent = s.msg;
+      i++;
+      setTimeout(tick, 420);
+    };
+    tick();
+  }
+
+  /* =========================================================
+     VALUE MASKING
+     ========================================================= */
+  toggleMask(){
+    this.masked = !this.masked;
+    this.dom.revealLabel.textContent = this.masked ? 'Reveal Values' : 'Hide Values';
+    this.dom.btnReveal.setAttribute('aria-pressed', String(!this.masked));
+    this.renderAssets();
+  }
+
+  formatCurrency(n){
+    return '$' + (n/1000000).toLocaleString('en-US', {minimumFractionDigits:1, maximumFractionDigits:1}) + 'M';
+  }
+
+  /* =========================================================
+     RENDER: ASSET CARDS
+     ========================================================= */
+  renderAssets(){
+    this.dom.assetGrid.innerHTML = this.assets.map(a=>{
+      const positive = a.change >= 0;
+      const displayValue = this.masked ? '••••••••' : this.formatCurrency(a.value);
+      return `
+        <div class="card asset-card">
+          <div class="asset-top">
+            <div>
+              <div class="asset-symbol">${a.symbol}</div>
+              <div class="asset-name">${a.name}</div>
+            </div>
+            <span class="asset-swatch" style="background:${a.color}"></span>
+          </div>
+          <div class="asset-value ${this.masked ? 'masked' : ''}">${displayValue}</div>
+          <div class="asset-change ${positive ? 'pos' : 'neg'}">
+            ${positive ? '▲' : '▼'} ${Math.abs(a.change).toFixed(2)}% · 24h
+          </div>
+          <div class="asset-footnote">Simulated Value</div>
+        </div>`;
+    }).join('');
+  }
+
+  /* =========================================================
+     RENDER: VAULT TABLE
+     ========================================================= */
+  renderVault(){
+    this.dom.vaultBody.innerHTML = this.compartments.map(c=>`
+      <tr>
+        <td class="vault-id">${c.id}</td>
+        <td>${c.class}</td>
+        <td>${c.ceremony}</td>
+        <td><span class="badge ${c.status}">${c.status === 'sealed' ? 'Sealed' : 'Rotating'}</span></td>
+      </tr>`).join('');
+  }
+
+  /* =========================================================
+     CHART: Canvas pie/donut, redrawn on resize (debounced)
+     ========================================================= */
+  drawChart(){
+    const canvas = this.dom.chart;
+    const dpr = window.devicePixelRatio || 1;
+    const size = 150;
+    canvas.width = size * dpr;
+    canvas.height = size * dpr;
+    canvas.style.width = size + 'px';
+    canvas.style.height = size + 'px';
+    const ctx = canvas.getContext('2d');
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    ctx.clearRect(0,0,size,size);
+
+    const total = this.assets.reduce((s,a)=>s+a.value,0);
+    const cx = size/2, cy = size/2, rOuter = size/2 - 4, rInner = rOuter * 0.58;
+    let angle = -Math.PI/2;
+
+    this.assets.forEach(a=>{
+      const slice = (a.value/total) * Math.PI * 2;
+      ctx.beginPath();
+      ctx.moveTo(cx,cy);
+      ctx.arc(cx,cy,rOuter, angle, angle+slice);
+      ctx.closePath();
+      ctx.fillStyle = a.color;
+      ctx.fill();
+      angle += slice;
+    });
+
+    // Donut hole
+    ctx.globalCompositeOperation = 'destination-out';
+    ctx.beginPath();
+    ctx.arc(cx,cy,rInner,0,Math.PI*2);
+    ctx.fill();
+    ctx.globalCompositeOperation = 'source-over';
+
+    // Legend
+    this.dom.legend.innerHTML = this.assets.map(a=>{
+      const pct = ((a.value/total)*100).toFixed(1);
+      return `<div class="legend-row">
+        <span class="legend-key"><span class="legend-dot" style="background:${a.color}"></span>${a.symbol}</span>
+        <span class="legend-pct">${pct}%</span>
+      </div>`;
+    }).join('');
+  }
+
+  /* =========================================================
+     AUDIT LEDGER
+     ========================================================= */
+  seedLedger(){
+    this.addAuditEntry('Session initialized', this.generateHash(), true);
+    this.addAuditEntry('HSM attestation chain verified (simulated)', this.generateHash());
+    this.addAuditEntry('Asset registry reconciled', this.generateHash());
+    this.merkleRoot = this.generateHash();
+    this.dom.merkleRoot.textContent = this.merkleRoot;
+  }
+
+  generateHash(){
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    let part1 = '', part2 = '';
+    for(let i=0;i<12;i++) part1 += chars[Math.floor(Math.random()*chars.length)];
+    for(let i=0;i<4;i++) part2 += chars[Math.floor(Math.random()*chars.length)];
+    return `${part1}-${part2} (SIMULATED)`;
+  }
+
+  addAuditEntry(label, hash, gold=false){
+    const entry = {
+      label,
+      hash,
+      time: new Date(),
+      gold,
+    };
+    this.ledger.unshift(entry);
+    this.renderLedger();
+  }
+
+  formatTime(d){
+    return d.toLocaleTimeString('en-US', {hour12:false}) + ' UTC';
+  }
+
+  renderLedger(){
+    const rowHtml = (e) => `
+      <div class="ledger-row">
+        <span class="ledger-dot ${e.gold ? 'gold' : ''}"></span>
+        <div>
+          <div class="ledger-event">${e.label}</div>
+          <span class="ledger-hash">${e.hash}</span>
+        </div>
+        <span class="ledger-time">${this.formatTime(e.time)}</span>
+      </div>`;
+
+    this.dom.ledgerRecent.innerHTML = this.ledger.slice(0,5).map(rowHtml).join('');
+    this.dom.ledgerFull.innerHTML = this.ledger.map(rowHtml).join('') ||
+      '<p class="panel-sub">No events recorded yet.</p>';
+  }
+
+  /* =========================================================
+     HSM KEY ROTATION (simulated)
+     ========================================================= */
+  rotateHSM(){
+    this.dom.btnRotate.disabled = true;
+    const original = this.dom.btnRotate.innerHTML;
+    this.dom.btnRotate.innerHTML = 'Rotating…';
+
+    setTimeout(()=>{
+      this.merkleRoot = this.generateHash();
+      this.dom.merkleRoot.textContent = this.merkleRoot;
+      this.addAuditEntry('HSM key rotation completed', this.merkleRoot, true);
+      this.dom.btnRotate.innerHTML = original;
+      this.dom.btnRotate.disabled = false;
+    }, 900);
+  }
+
+  /* =========================================================
+     VIEW SWITCHING
+     ========================================================= */
+  switchView(view){
+    if(!view || view === this.currentView) return;
+    this.currentView = view;
+
+    this.$all('.view').forEach(v => v.classList.remove('active'));
+    this.$(`#view-${view}`).classList.add('active');
+
+    this.$all('.nav-item, .tab-item').forEach(btn=>{
+      btn.classList.toggle('active', btn.dataset.view === view);
+    });
+
+    this.$('#mainContent').scrollTo({top:0, behavior:'smooth'});
+  }
+}
+
+// ---- Boot the application once DOM is parsed ----
+document.addEventListener('DOMContentLoaded', () => { window.vaultApp = new VaultApp(); });
+</script>
 </body>
 </html>
