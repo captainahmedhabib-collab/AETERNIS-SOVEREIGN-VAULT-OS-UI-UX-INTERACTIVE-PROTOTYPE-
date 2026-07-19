@@ -2,36 +2,309 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>MNCOS-OS Sovereign Vault</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AETERNIS SOVEREIGN VAULT-OS</title>
     <style>
-        body {
-            background-color: #0a0a0a;
-            color: #00ff41;
-            font-family: 'Courier New', Courier, monospace;
+        /* CSS Reset & Core Styling */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body, html {
+            background-color: #030712;
+            color: #f3f4f6;
+            height: 100%;
+            overflow-x: hidden;
+        }
+
+        /* Sovereign Watermark Overlay - visual only, physically inert */
+        .sovereign-watermark {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            z-index: 9999;
             display: flex;
-            flex-direction: column;
             align-items: center;
             justify-content: center;
-            height: 100vh;
-            margin: 0;
-            text-align: center;
+            opacity: 0.03;
+            user-select: none;
         }
-        h1 {
-            font-size: 2.5rem;
-            text-shadow: 0 0 10px #00ff41;
-            margin-bottom: 20px;
+        .sovereign-watermark svg {
+            width: 60%;
+            height: auto;
         }
-        .status {
-            border: 1px solid #00ff41;
-            padding: 15px 30px;
-            font-size: 1.2rem;
-            letter-spacing: 3px;
+
+        /* Layout Utilities */
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Screens Management */
+        .screen {
+            display: none;
+        }
+        .screen.active {
+            display: block;
+        }
+
+        /* Terminal & Components */
+        .terminal-card {
+            background-color: #0b1329;
+            border: 1px solid #1e293b;
+            border-radius: 8px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
+        }
+
+        .system-title {
+            color: #38bdf8;
+            font-size: 1.5rem;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            margin-bottom: 8px;
             text-transform: uppercase;
+        }
+
+        .system-subtitle {
+            color: #9ca3af;
+            font-size: 0.875rem;
+            margin-bottom: 24px;
+        }
+
+        /* Deterministic Buttons */
+        .btn-deterministic {
+            position: relative;
+            z-index: 100;
+            touch-action: manipulation;
+            background-color: #0284c7;
+            color: #ffffff;
+            border: none;
+            padding: 14px 28px;
+            font-size: 1rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+            display: block;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        .btn-deterministic:active {
+            background-color: #0369a1;
+        }
+
+        .btn-secondary {
+            background-color: #1e293b;
+            border: 1px solid #334155;
+            margin-top: 12px;
+        }
+        .btn-secondary:active {
+            background-color: #0f172a;
+        }
+
+        /* Log Outputs */
+        .log-display {
+            background-color: #020617;
+            border: 1px solid #1e293b;
+            border-radius: 4px;
+            padding: 16px;
+            font-family: monospace;
+            font-size: 0.85rem;
+            color: #4ade80;
+            height: 180px;
+            overflow-y: auto;
+            margin-top: 20px;
+            white-space: pre-wrap;
+        }
+
+        /* Metrics Grid */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 16px;
+            margin-top: 20px;
+        }
+
+        .metric-item {
+            background-color: #111827;
+            border: 1px solid #374151;
+            padding: 16px;
+            border-radius: 6px;
+        }
+        .metric-label {
+            font-size: 0.75rem;
+            color: #9ca3af;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+        .metric-value {
+            font-size: 1.25rem;
+            font-weight: 700;
+            font-family: monospace;
+            color: #f3f4f6;
+        }
+
+        /* Reference Disclaimer */
+        .disclaimer-tag {
+            font-size: 0.7rem;
+            color: #ef4444;
+            font-weight: bold;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            margin-top: 10px;
+            display: block;
+        }
+
+        /* 820px Breakpoint Customization */
+        @media (min-width: 820px) {
+            .metrics-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+            .btn-deterministic {
+                width: auto;
+                display: inline-block;
+            }
         }
     </style>
 </head>
 <body>
-    <h1>MNCOS-OS Sovereign Vault Active</h1>
-    <div class="status">System Status: Operational</div>
+
+    <!-- Physically Inert Watermark Layer -->
+    <div class="sovereign-watermark">
+        <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="50" cy="50" r="45" fill="none" stroke="currentColor" stroke-width="2"/>
+            <path d="M50 15 L50 85 M15 50 L85 50" stroke="currentColor" stroke-width="1.5"/>
+            <text x="50" y="53" font-size="6" text-anchor="middle" font-weight="bold" fill="currentColor">EL-KOPTAN</text>
+        </svg>
+    </div>
+
+    <div class="container">
+        
+        <!-- SCREEN 1: AUTHENTICATION / BOOT LAYER -->
+        <div id="screen-auth" class="screen active">
+            <div class="terminal-card">
+                <div class="system-title">Aeternis Sovereign Vault-OS</div>
+                <div class="system-subtitle">Sovereign Infrastructure Core • Node Verification Enclave</div>
+                
+                <p style="margin-bottom: 24px; font-size: 0.95rem; color: #d1d5db; line-height: 1.5;">
+                    This interface establishes a secure, zero-trust connection to the isolated vault layer. Cryptographic execution paths are verified locally.
+                </p>
+
+                <button id="btn-initialize" class="btn-deterministic">Initialize Secure Session</button>
+                <span class="disclaimer-tag">SYSTEM COMPLIANT — REFERENCE ONLY</span>
+            </div>
+        </div>
+
+        <!-- SCREEN 2: CORE OPERATIONS LAYER -->
+        <div id="screen-dashboard" class="screen">
+            <div class="terminal-card">
+                <div class="system-title">Vault Control Center</div>
+                <div class="system-subtitle">Operational Node Cluster Active</div>
+
+                <!-- Metrics & Liquidity Reveal -->
+                <div class="metrics-grid">
+                    <div class="metric-item">
+                        <div class="metric-label">Liquidity Status</div>
+                        <div class="metric-value" style="color: #4ade80;">SECURED</div>
+                    </div>
+                    <div class="metric-item">
+                        <div class="metric-label">Enclave Environment</div>
+                        <div class="metric-value">AIR-GAPPED</div>
+                    </div>
+                    <div class="metric-item">
+                        <div class="metric-label">Settlement Ledger</div>
+                        <div class="metric-value" style="color: #eab308;">SIMULATED — TEST LEDGER</div>
+                    </div>
+                </div>
+
+                <!-- Ledger / Root Output Box -->
+                <div id="log-terminal" class="log-display">System ready. Awaiting cryptographic sequence initiation...</div>
+
+                <!-- Interactive Controls -->
+                <div style="margin-top: 24px;">
+                    <button id="btn-rotate" class="btn-deterministic">Initiate Secure Rotation Protocol</button>
+                    <button id="btn-reset" class="btn-deterministic btn-secondary">Terminate Session</button>
+                </div>
+
+                <span class="disclaimer-tag" style="margin-top: 20px;">SIMULATED VALUE — ARCHITECTURAL DEMO</span>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // DOM Elements
+        const screenAuth = document.getElementById('screen-auth');
+        const screenDashboard = document.getElementById('screen-dashboard');
+        const btnInitialize = document.getElementById('btn-initialize');
+        const btnRotate = document.getElementById('btn-rotate');
+        const btnReset = document.getElementById('btn-reset');
+        const logTerminal = document.getElementById('log-terminal');
+
+        // Deterministic UI Toggle Engine (Zero Transition Latency)
+        function switchScreen(fromScreen, toScreen) {
+            fromScreen.style.display = 'none';
+            toScreen.style.display = 'block';
+        }
+
+        // Simulating Pure Cryptographic Hash Path (Merkle Root Generation)
+        function generateMockMerkleRoot() {
+            const hexChars = '0123456789abcdef';
+            let result = '';
+            for (let i = 0; i < 16; i++) {
+                result += hexChars[Math.floor(Math.random() * 16)];
+            }
+            return result + '…' + result.split('').reverse().join('');
+        }
+
+        // Actions & Event Listeners (Fully Tap-Optimized)
+        btnInitialize.addEventListener('click', function(e) {
+            e.preventDefault();
+            // Immediate Deterministic UI Shift
+            switchScreen(screenAuth, screenDashboard);
+            
+            // Populate Boot Logging
+            logTerminal.textContent = 
+                `[SYSTEM] Booting Sovereign Vault Infrastructure v2.0.26...\n` +
+                `[SYSTEM] Identity verified under moniker: EL-KOPTAN\n` +
+                `[SECURITY] HSM Enclave Communication Link established.\n` +
+                `[AUDIT] Audit Ledger push channel opened successfully.`;
+        });
+
+        btnRotate.addEventListener('click', function(e) {
+            e.preventDefault();
+            const freshRoot = generateMockMerkleRoot();
+            
+            // Append Output Instantly without heavy DOM cycles
+            const currentLogs = logTerminal.textContent;
+            logTerminal.textContent = 
+                `[ROTATION] Action triggered at ${new Date().toISOString()}\n` +
+                `[HSM] Executing key rotation inside isolated domain...\n` +
+                `[MERKLE] Fresh Mock Root Generated: ${freshRoot} (SIMULATED)\n` +
+                `[AUDIT] Audit Ledger Entry Broadcasted.\n` +
+                `----------------------------------------\n` +
+                currentLogs;
+                
+            logTerminal.scrollTop = 0;
+        });
+
+        btnReset.addEventListener('click', function(e) {
+            e.preventDefault();
+            logTerminal.textContent = "System ready. Awaiting cryptographic sequence initiation...";
+            switchScreen(screenDashboard, screenAuth);
+        });
+    </script>
 </body>
 </html>
